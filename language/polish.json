@@ -1,6 +1,6 @@
 {
-    "_CREDITS":"MKevas#8311",
-    "_INFO":"This file is a translation for open ticket 3.4.1",
+    "_CREDITS":"mkevas",
+    "_INFO":"This file is a translation for open ticket 3.5.5",
 
     "errors":{
         "missingArgsTitle":"Nieprawidłowe argumenty!",
@@ -97,5 +97,39 @@
         "wait":"Proszę czekać!",
         "estimated":"Szacowany czas",
         "available":"Transkrypcja jest dostępna tutaj"
+    },
+    "stats":{
+        "globalTitle":"Globalne Statystyki",
+        "ticketTitle":"Statystyki biletów dla {0}",
+        "userTitle":"Statystyki użytkowników dla {0}",
+        "systemTitle":"Statystyki systemu",
+        "versionTitle":"Wersja bota",
+
+        "ticketsCreated":"Bilety stworzone",
+        "ticketsClosed":"Bilety zamknięte",
+        "ticketsDeleted":"Bilety skasowane",
+        "ticketsReopened":"Bilety otwarte ponownie",
+        "ticketsAutoclosed":"Bilety automatycznie zamknięte",
+        "transcriptsCreated":"Utworzono transkrypcje",
+        "startupDate":"Data uruchomienia",
+        "latestUpdate":"Najnowsza aktualizacja",
+        "ticketCreatedOn":"Bilet został utworzony dnia",
+        "ticketCreatedBy":"Bilet stworzony przez",
+        "messagesSent":"Wiadomość wysłana",
+        "status":"Status",
+        "participants":"Uczestnicy",
+        "role":"Rola",
+
+        "switches":{
+            "globalAdmin":"Globalny administrator",
+            "ticketAdmin":"Admin biletowy",
+            "member":"Użytkownik",
+            "open":"Otwarte",
+            "reopened":"Otwarte ponownie",
+            "closed":"Zamknięte",
+            "autoclosed":"Automatycznie zamknięte"
+        },
+
+        "errorUserNotFound":"Tego użytkownika nie można znaleźć w bazie statystyk!"
     }
 }

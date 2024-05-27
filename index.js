@@ -17,22 +17,19 @@
     
     SUGGESTING NEW FEATURES:
     =====================
-    Open Ticket is a community project. This means that 
-    almost all feature ideas come from our community. 
-    Are you missing something you want in open ticket? 
-    Then join our Discord server and we will add it (if possible)
-
-    Did you know that 80% of all features in OT were ideas from our community?
-
+    Open Ticket is an open-source community project!
+    Because of this, almost 80% of all features in OT were ideas from our community!
+    Feel free to add new ideas in our discord server
+    or via github issues! Translations are always welcome!
 
 
     INFORMATION:
     ============
-    Open Ticket v3.4.1  -  © DJdj Development
+    Open Ticket v3.5.5  -  © DJdj Development
 
     discord: https://discord.dj-dj.be
     website: https://www.dj-dj.be
-    github: https://openticket.dj-dj.be
+    github: https://otgithub.dj-dj.be
     support e-mail: support@dj-dj.be
 
     Config files:
@@ -41,7 +38,7 @@
 
     Send ./openticketdebug.txt when there are errors!
  */
-
+/** discord :)*/
 const discord = require("discord.js")
 const fs = require('fs')
 const {GatewayIntentBits,Partials} = discord
@@ -57,9 +54,10 @@ const client = new discord.Client({
     partials:[Partials.Channel,Partials.Message]
 })
 exports.client = client
-client.setMaxListeners(50)
+client.setMaxListeners(120)
 if (process.argv.some((v) => v == "--debug")) console.log("[TEMP_DEBUG]","created client")
 
+//LOAD CONFIG
 var tempconfig = require("./config.json")
 /**@type {Boolean} */
 var isDevConfig = false
@@ -75,31 +73,34 @@ if (process.argv.some((v) => v == "--devconfig")){
 if (process.argv.some((v) => v == "--debug")) console.log("[TEMP_DEBUG]","loaded flags")
 
 exports.developerConfig = isDevConfig
-
 const config = tempconfig
 exports.config = config
-
 const tsconfig = isDevConfig ? require("./devtsconfig.json") : require("./transcriptconfig.json")
 exports.tsconfig = tsconfig
 
+//LOAD LANGUAGE
 const language = require("./core/languageManager").language
 exports.language = language
+
+//LOAD FLAGS
 if (process.argv.some((v) => v == "--debug")) console.log("[TEMP_DEBUG]","loaded language")
 
 if (process.argv.some((v) => v == "--debug")) console.log("[TEMP_DEBUG]","loaded config")
-exports.storage = require('./core/dynamicdatabase/storage')
+exports.storage = require('./core/dynamicdatabase/storage').main
 if (process.argv.some((v) => v == "--debug")) console.log("[TEMP_DEBUG]","loaded storage")
+
+exports.statsStorage = require('./core/dynamicdatabase/storage').stats
+if (process.argv.some((v) => v == "--debug")) console.log("[TEMP_DEBUG]","loaded stats storage")
 
 exports.errorLog = require("./core/errorLogSystem")
 if (process.argv.some((v) => v == "--debug")) console.log("[TEMP_DEBUG]","LOADED LOGGING SYSTEM")
 if (process.argv.some((v) => v == "--debug")) console.log("[TEMP_DEBUG]","switching to new logs")
 this.errorLog.log("debug","loaded new logs")
 
+//LOAD SYSTEM LIBRARYS
 exports.actionRecorder = require("./core/utils/liveStatus").actionRecorder
-
 exports.hiddenData = require("./core/utils/hiddendata")
 this.errorLog.log("debug","loaded hiddendataTM")
-
 exports.embeds = {
     commands:require("./core/interactionHandlers/embeds/commands")
 }
@@ -110,6 +111,10 @@ exports.buttons = {
 }
 this.errorLog.log("debug","loaded buttons & embeds")
 
+exports.statsManager = require("./core/statsManager")
+this.statsManager.startupStatsManager()
+
+//START CLIENT LOGIN PROCESS
 client.on('ready',async () => {
     this.errorLog.log("debug","client logged in")
     this.actionRecorder.push({
@@ -118,17 +123,19 @@ client.on('ready',async () => {
         time:new Date().getTime(),
         type:"client.loggedin.success"
     })
-    var statusSet = false
     const setStatus = (type,text) => {
-        if (statusSet == true) return
-        const getTypeEnum = (text) => {
-            if (text.toLowerCase() == "playing") return discord.ActivityType.Playing
-            else if (text.toLowerCase() == "listening") return discord.ActivityType.Listening
-            else if (text.toLowerCase() == "watching") return discord.ActivityType.Watching
+        const getTypeEnum = (type) => {
+            if (type.toLowerCase() == "playing") return discord.ActivityType.Playing
+            else if (type.toLowerCase() == "listening") return discord.ActivityType.Listening
+            else if (type.toLowerCase() == "watching") return discord.ActivityType.Watching
+            else if (type.toLowerCase() == "custom") return discord.ActivityType.Custom
             else return discord.ActivityType.Listening
         }
-        client.user.setActivity(text,{type:getTypeEnum(type)})
-        statusSet = true
+        client.user.setActivity({
+            type:getTypeEnum(type),
+            state:(text.toLowerCase() == "custom") ? text : undefined,
+            name:text
+        })
     }
     this.errorLog.log("debug","bot status loaded")
     this.actionRecorder.push({
@@ -154,6 +161,10 @@ client.on('ready',async () => {
 
         if (config.status.enabled){
             setStatus(config.status.type,config.status.text)
+            //refresh status every 10 minutes
+            setInterval(() => {
+                setStatus(config.status.type,config.status.text)
+            },(60*10*1000))
         }
 
         this.actionRecorder.push({
@@ -226,7 +237,7 @@ client.on('ready',async () => {
         }
     }
 
-    //load plugins
+    //LOAD PLUGINS (after client login)
     this.actionRecorder.push({
         category:"ot.managers.plugins",
         file:"./core/api/pluginlauncher.js",
@@ -242,6 +253,8 @@ client.on('ready',async () => {
     })
     this.errorLog.log("debug","loading plugins")
 })
+
+//LOAD CHECKER.JS
 if (!require("./core/api/api.json").disable.checkerjs.all){
     this.actionRecorder.push({
         category:"ot.managers.main",
@@ -260,6 +273,7 @@ if (!require("./core/api/api.json").disable.checkerjs.all){
     })
 }
 
+//LOAD COMMANDS & CORE
 if (process.argv[2] && process.argv[2].startsWith("slash")){
     //do nothing
 }else{
@@ -283,6 +297,8 @@ if (process.argv[2] && process.argv[2].startsWith("slash")){
     require("./commands/claim")()
     require("./commands/unclaim")()
     require("./commands/change")()
+    require("./commands/stats")()
+
     this.actionRecorder.push({
         category:"ot.managers.loader",
         file:"./index.js",
@@ -314,6 +330,7 @@ if (process.argv[2] && process.argv[2].startsWith("slash")){
     })
 }
 
+//LOAD API
 this.actionRecorder.push({
     category:"ot.managers.loader",
     file:"./index.js",
@@ -331,6 +348,7 @@ this.actionRecorder.push({
     type:"api.success"
 })
 
+//ERROR SYSTEM
 this.actionRecorder.push({
     category:"ot.managers.loader",
     file:"./index.js",
@@ -368,11 +386,6 @@ process.on("uncaughtException",async (error,origin) => {
     errorLog(error.name+": "+error.message+" | origin: "+origin,error.stack)
 
     APIEvents.onError(error.name+": "+error.message,new Date())
-
-    //TEMPORARY INTEGRATION FOR LIVESTATUS ERROR UPLOADER:
-    try {
-        await require("./core/utils/liveStatus").liveStatusUploadManager(error.name+": "+error.message+" | origin: "+origin+"\n"+error.stack)
-    } catch {this.errorLog.log("info","FAILED TO AUTO-REPORT ERROR! (you can ignore this error)")}
 })
 
 this.actionRecorder.push({
@@ -382,6 +395,55 @@ this.actionRecorder.push({
     type:"debugsystem.success"
 })
 
-const token = config.token.fromENV ? process.env.TOKEN : config.token.value
-client.login(token)
+//PARSE .env FILE FROM DOTENV LIB
+//npm i dotenv
+//https://github.com/motdotla/dotenv
+/**@param {Buffer} src */
+const loadFromDotEnv = (src) => {
+    const LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg
+    
+    const obj = {}
+    
+    // Convert buffer to string
+    let lines = src.toString()
+    
+    // Convert line breaks to same format
+    lines = lines.replace(/\r\n?/mg, '\n')
+    
+    let match
+    while ((match = LINE.exec(lines)) != null) {
+        const key = match[1]
+    
+        // Default undefined or null to empty string
+        let value = (match[2] || '')
+    
+        // Remove whitespace
+        value = value.trim()
+    
+        // Check if double quoted
+        const maybeQuote = value[0]
+    
+        // Remove surrounding quotes
+        value = value.replace(/^(['"`])([\s\S]*)\1$/mg, '$2')
+    
+        // Expand newlines if double quoted
+        if (maybeQuote === '"') {
+        value = value.replace(/\\n/g, '\n')
+        value = value.replace(/\\r/g, '\r')
+        }
+    
+        // Add to object
+        obj[key] = value
+    }
+    process.env.TOKEN = obj.TOKEN
+}
+
+//LOGIN SYSTEM
+if (config.token.fromENV){
+    loadFromDotEnv(fs.readFileSync(".env"))
+    client.login(process.env.TOKEN)
+}else{
+    client.login(config.token.value)
+}
+
 this.errorLog.log("debug","login with token")

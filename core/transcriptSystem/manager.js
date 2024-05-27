@@ -35,6 +35,10 @@ const checkAvailability = async () => {
  */
 module.exports = async (messages,guild,channel,user,reason) => {
     require("../api/modules/events").onTranscriptCreation(messages,channel,guild,new Date())
+    bot.statsManager.updateGlobalStats("TRANSCRIPTS_CREATED",(current) => {
+        if (typeof current != "undefined") return current+1
+        return 1
+    })
     const msglist = await channel.messages.fetchPinned()
 
     const chName = channel.name
@@ -55,6 +59,7 @@ module.exports = async (messages,guild,channel,user,reason) => {
             const tsb = tsconfig.style.background
             const tsh = tsconfig.style.header
             const tss = tsconfig.style.stats
+            const tsf = tsconfig.style.favicon
             const JSONDATA = require("./communication/compileJsonV2").compile(guild,channel,user,messages,{
                 style:{
                     background:{
@@ -75,17 +80,21 @@ module.exports = async (messages,guild,channel,user,reason) => {
                         valueTextColor:tss.valueTextColor,
                         hideBackgroundColor:tss.hideBackgroundColor,
                         hideTextColor:tss.hideTextColor
+                    },
+                    favicon:{
+                        enableCustomFavicon:tsf.enableCustomFavicon,
+                        imageUrl:tsf.imageUrl
                     }
                     
                 },
                 bot:{
-                    name:client.user.username,
+                    name:client.user.displayName,
                     id:client.user.id,
                     pfp:client.user.displayAvatarURL(),
                 },
                 ticket:{
                     creatorid:ticketopener.id,
-                    creatorname:ticketopener.username,
+                    creatorname:ticketopener.displayName,
                     creatorpfp:ticketopener.displayAvatarURL(),
 
                     openedtime:opentime.getTime(),
@@ -104,11 +113,35 @@ module.exports = async (messages,guild,channel,user,reason) => {
                     if (!tc) return
                     tc.send({embeds:[errembed],files:[attachment]})
                 }
+                if (tsconfig.sendTranscripts.enableDM && user){
+                    const embed = tsembeds.tsready(chName,null,user,ticketopener)
+                    try {
+                        ticketopener.send({embeds:[embed],files:[attachment]})
+                    }catch{}
+                }
                 return
             }
 
             const TSdata = await require("./communication/index").upload(JSONDATA)
-            if (!TSdata) return false
+            if (!TSdata){
+                const attachment = await require("./oldTranscript").createTranscript(messages,channel)
+                const errembed = tsembeds.tserror(chName,chId,user,"`HTML Transcript API: reached ratelimit`")
+
+                if (tsconfig.sendTranscripts.enableChannel){
+                    /**@type {discord.TextChannel|undefined} */
+                    const tc = guild.channels.cache.find((c) => c.id == tsconfig.sendTranscripts.channel)
+            
+                    if (!tc) return
+                    tc.send({embeds:[errembed],files:[attachment]})
+                }
+                if (tsconfig.sendTranscripts.enableDM && user){
+                    const embed = tsembeds.tsready(chName,null,user,ticketopener)
+                    try {
+                        ticketopener.send({embeds:[embed],files:[attachment]})
+                    }catch{}
+                }
+                return false
+            }
 
             if (TSdata.status == "success"){
                 //MAKE THIS COMPATIBLE WITH PREMIUM "customTranscriptUrl" IN FUTURE VERSIONS!!
@@ -136,12 +169,12 @@ module.exports = async (messages,guild,channel,user,reason) => {
                 //ready
                 setTimeout(() => {
                     if (msg){
-                        msg.edit({embeds:[tsembeds.tsready(chName,chId,url,user)]})
+                        msg.edit({embeds:[tsembeds.tsready(chName,url,user,ticketopener)]})
                     }
 
                     if (tsconfig.sendTranscripts.enableDM){
                         if (!user) return
-                        const embed = tsembeds.tsready(chName,chId,url,user)
+                        const embed = tsembeds.tsready(chName,url,user,ticketopener)
                         try {
                             ticketopener.send({embeds:[embed]})
                         }catch{}
@@ -158,10 +191,16 @@ module.exports = async (messages,guild,channel,user,reason) => {
                     if (!tc) return
                     tc.send({embeds:[errembed],files:[attachment]})
                 }
+                if (tsconfig.sendTranscripts.enableDM && user){
+                    const embed = tsembeds.tsready(chName,null,user,ticketopener)
+                    try {
+                        ticketopener.send({embeds:[embed],files:[attachment]})
+                    }catch{}
+                }
             }
         }else{
             const attachment = await require("./oldTranscript").createTranscript(messages,channel)
-            const embed = tsembeds.tsready(chName,chId,false,user)
+            const embed = tsembeds.tsready(chName,null,user,ticketopener)
 
             if (tsconfig.sendTranscripts.enableChannel){
                 /**@type {discord.TextChannel|undefined} */
@@ -169,6 +208,12 @@ module.exports = async (messages,guild,channel,user,reason) => {
         
                 if (!tc) return
                 tc.send({embeds:[embed],files:[attachment]})
+            }
+            if (tsconfig.sendTranscripts.enableDM && user){
+                const embed = tsembeds.tsready(chName,null,user,ticketopener)
+                try {
+                    ticketopener.send({embeds:[embed],files:[attachment]})
+                }catch{}
             }
         }
     }

@@ -14,62 +14,85 @@ module.exports = () => {
 
     if (!DISABLE.commands.text.change) client.on("messageCreate", async msg => {
         if (!msg.content.startsWith(config.prefix+"change")) return
+        if (!msg.channel.isTextBased()) return
 
         if (!msg.guild) return
-        if (!permsChecker.command(msg.author.id,msg.guild.id)){
-            permsChecker.sendUserNoPerms(msg.author)
-            return
-        }
 
         const hiddendata = bot.hiddenData.readHiddenData(msg.channel.id)
         if (hiddendata.length < 1) return msg.channel.send({embeds:[bot.errorLog.notInATicket]})
         const ticketId = hiddendata.find(d => d.key == "type").value
+
+        if (!permsChecker.ticket(msg.author.id,msg.guild.id,ticketId)){
+            permsChecker.sendUserNoPerms(msg.author)
+            return
+        }
             
         const list = []
-        config.options.forEach((o) => list.push(o.id))
+        config.options.forEach((o) => {
+            if (o.type == "ticket") list.push(o.id)
+        })
 
         var newtype = msg.content.split(config.prefix+"change")[1].substring(1)
         if (!newtype) return msg.channel.send({embeds:[bot.errorLog.invalidIdChooseFromList(list,l.errors.missingArgsDescription+" `<type>`:\n`"+config.prefix+"change <type>`")]})
 
-        const newTicket = require("../core/utils/configParser").getTicketById(newtype)
+        const newTicket = require("../core/utils/configParser").getTicketById(newtype,true)
         if (!newTicket) return msg.channel.send({embeds:[bot.errorLog.invalidIdChooseFromList(list,l.errors.missingArgsDescription+" `<type>`:\n`"+config.prefix+"change <type>`")]})
 
+        /**@type {discord.PermissionOverwriteManager} */
+        const prePermsManager = msg.channel.permissionOverwrites
+        const prePerms = prePermsManager.cache
+        
         /**@type {String} */
         var chName = msg.channel.name
         const splitted = chName.split("-")
         const prefix = splitted.shift()
         const name = (splitted.length > 0) ? splitted.join("-") : prefix
-        
+
         if (newTicket.category){
             const parent = await msg.guild.channels.fetch(newTicket.category,{cache:true})
             if (parent && parent.type == discord.ChannelType.GuildCategory) msg.channel.setParent(parent)
         }
-        
-        msg.channel.setName(newTicket.channelprefix+name)
+
+        prePermsManager.set(prePerms)
+        msg.channel.setName(newTicket.channelprefix+name).catch(() => {
+            msg.channel.send({embeds:[bot.errorLog.failedRenameChannel]})
+        })
+
+        hiddendata.find((value,index) => {
+            if (value.key == "type"){
+                hiddendata[index] = {key:"type",value:newtype}
+            }
+        })
+
         msg.channel.send({embeds:[bot.embeds.commands.changeEmbed(msg.author,newtype)]})
 
         log("command","someone used the 'change' command",[{key:"user",value:msg.author.username}])
         log("system","ticket type changed",[{key:"user",value:msg.author.username},{key:"ticket",value:name},{key:"newtype",value:newtype}])
-        APIEvents.onCommand("change",permsChecker.command(msg.author.id,msg.guild.id),msg.author,msg.channel,msg.guild,new Date())
+        APIEvents.onCommand("change",permsChecker.ticket(msg.author.id,msg.guild.id,ticketId),msg.author,msg.channel,msg.guild,new Date())
     })
 
     if (!DISABLE.commands.slash.change) client.on("interactionCreate",async (interaction) => {
         if (!interaction.isChatInputCommand()) return
         if (interaction.commandName != "change") return
+        if (!interaction.channel.isTextBased()) return
 
         if (!interaction.guild) return
-        if (!permsChecker.command(interaction.user.id,interaction.guild.id)){
+
+        const hiddendata = bot.hiddenData.readHiddenData(interaction.channel.id)
+        if (hiddendata.length < 1) return interaction.reply({embeds:[bot.errorLog.notInATicket]})
+        const ticketId = hiddendata.find(d => d.key == "type").value
+
+        if (!permsChecker.ticket(interaction.user.id,interaction.guild.id,ticketId)){
             permsChecker.sendUserNoPerms(interaction.user)
             return
         }
 
         await interaction.deferReply()
-        const hiddendata = bot.hiddenData.readHiddenData(interaction.channel.id)
-        if (hiddendata.length < 1) return interaction.editReply({embeds:[bot.errorLog.notInATicket]})
-        const ticketId = hiddendata.find(d => d.key == "type").value
             
         const list = []
-        config.options.forEach((o) => list.push(o.id))
+        config.options.forEach((o) => {
+            if (o.type == "ticket") list.push(o.id)
+        })
 
         var newtype = interaction.options.getString("type",true)
         const newTicket = require("../core/utils/configParser").getTicketById(newtype,true)
@@ -91,28 +114,21 @@ module.exports = () => {
             if (parent && parent.type == discord.ChannelType.GuildCategory) interaction.channel.setParent(parent)
         }
 
-        await prePermsManager.set(prePerms)
-        interaction.channel.setName(newTicket.channelprefix+name)
+        prePermsManager.set(prePerms)
+        interaction.channel.setName(newTicket.channelprefix+name).catch(() => {
+            interaction.channel.send({embeds:[bot.errorLog.failedRenameChannel]})
+        })
 
-        var newHiddendata = hiddendata.data
-        newHiddendata.find((value,index) => {
+        hiddendata.find((value,index) => {
             if (value.key == "type"){
-                newHiddendata[index] = {key:"type",value:newtype}
+                hiddendata[index] = {key:"type",value:newtype}
             }
         })
-        
-        const prevDescription = bot.hiddenData.removeHiddenData(firstmsg.embeds[0].description).description
-        const newData = bot.hiddenData.writeHiddenData("ticketdata",newHiddendata)
-        const newDescription = prevDescription+newData
-        const newEmbed = new discord.EmbedBuilder(firstmsg.embeds[0].data)
-            .setDescription(newDescription)
-
-        firstmsg.edit({embeds:[newEmbed]})
         
         interaction.editReply({embeds:[bot.embeds.commands.changeEmbed(interaction.user,newtype)]})
 
         log("command","someone used the 'change' command",[{key:"user",value:interaction.user.username}])
         log("system","ticket type changed",[{key:"user",value:interaction.user.username},{key:"ticket",value:name},{key:"newtype",value:newtype}])
-        APIEvents.onCommand("change",permsChecker.command(interaction.user.id,interaction.guild.id),interaction.user,interaction.channel,interaction.guild,new Date())
+        APIEvents.onCommand("change",permsChecker.ticket(interaction.user.id,interaction.guild.id,ticketId),interaction.user,interaction.channel,interaction.guild,new Date())
     })
 }

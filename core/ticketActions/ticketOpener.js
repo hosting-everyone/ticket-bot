@@ -49,89 +49,6 @@ module.exports = () => {
             const currentTicketOptions = configParser.getTicketById(customId)
             if (currentTicketOptions == false) return interaction.reply({embeds: [bot.errorLog.serverError(l.errors.anotherOption)]})
 
-
-            if (storage.get("amountOfUserTickets", interaction.member.id) == null || storage.get("amountOfUserTickets", interaction.member.id) == "false" || Number(storage.get("amountOfUserTickets", interaction.member.id)) < config.system.maxAmountOfTickets) {
-              
-                //display modal
-                let modalReply = [];
-                if (currentTicketOptions.modal.enable && currentTicketOptions.modal.modalId.length > 0) {
-                    let modalConfig = configParser.getTicketModal(currentTicketOptions.modal.modalId)
-                    if (modalConfig.questions.length != undefined) {
-                        const questions = modalConfig.questions
-                        const modal = new discord.ModalBuilder()
-                            .setCustomId(modalConfig.id)
-                            .setTitle(modalConfig.title)
-                        let index = 0;
-                        //Build each question component
-                        while (index < questions.length && index < 5) {
-                            const question = questions[index];
-
-                            const component = new discord.TextInputBuilder()
-                                .setCustomId(index + "-" + currentTicketOptions.modal.id)
-                                .setLabel(question.label)
-                                .setMaxLength(question.maxLength)
-                                .setMinLength(question.minLength)
-                                .setRequired(question.required)
-                            if (question.placeholder != "") component.setPlaceholder(question.placeholder)
-                            if (question.value.length > question.minLength & question.value.length < question.maxLength && question.value != "") component.setValue(question.value)
-                            if (question.style === "short") component.setStyle(discord.TextInputStyle.Short)
-                            else if (question.style === "long") component.setStyle(discord.TextInputStyle.Paragraph)
-                            modal.addComponents(new discord.ActionRowBuilder().addComponents(component))
-
-                            index++;
-                        }
-
-                        await interaction.showModal(modal)
-
-                        interaction = await interaction.awaitModalSubmit({
-                            time: 6000 * 15, //timeout after 15 minutes
-                            dispose: true,
-                            filter: i => i.user.id === interaction.user.id,
-                        }).catch(error => {
-                            if (error.code !== 'InteractionCollectorError' && error !== 'Collector received no interactions before ending with reason: time') {
-                                console.error(error)
-                            }
-                            return null
-                        })
-                        if (interaction === null) return;
-                        else if (interaction.isModalSubmit()) {
-                            let i = 0;
-                            interaction.fields.fields.each(field => {
-                                const inputGiven = field.value.length <= 0 ? `_${typeof (l.modals || {}).emptyAnswer === "undefined" ? "No answer was given" : l.modals.emptyAnswer}_` : field.value
-                                modalReply.push([questions[i].label, inputGiven])
-                                i++;
-                            })
-                            try {
-                                if (config.system.answerInEphemeralOnOpen) await interaction.deferReply({ephemeral: config.system.answerInEphemeralOnOpen})
-                                else {
-                                    await interaction.deferUpdate()
-                                }
-                            } catch {
-                                return
-                            }
-                        }
-                    }
-                }
-                if (config.system.answerInEphemeralOnOpen && !currentTicketOptions.modal.enable) {
-                    if (interaction.isButton()){
-                        try {
-                            await interaction.deferReply({ephemeral:config.system.answerInEphemeralOnOpen})
-                        } catch{}
-                    }else if (interaction.isChatInputCommand()){
-                        try {
-                            await interaction.deferReply({ephemeral:config.system.answerInEphemeralOnOpen})
-                        } catch{}
-                    }else if (interaction.isStringSelectMenu()){
-                        try {
-                           await interaction.deferUpdate()
-                        } catch{}
-                    }
-                } else if (!currentTicketOptions.modal.enable && !interaction.isModalSubmit()) {
-                    await interaction.deferUpdate()
-                }
-
-                //update storage
-                storage.set("amountOfUserTickets", interaction.member.id, Number(storage.get("amountOfUserTickets", interaction.member.id)) + 1)
                 var ticketNumber = interaction.member.user.username
                 //set ticketName
                 var ticketName = currentTicketOptions.channelprefix + ticketNumber
@@ -160,7 +77,7 @@ module.exports = () => {
                 permissionsArray.push({
                     id:interaction.member.user,
                     type:"member",
-                    allow:[pfb.AddReactions,pfb.AttachFiles,pfb.EmbedLinks,pfb.SendMessages,pfb.ViewChannel]
+                    allow:[pfb.AddReactions,pfb.AttachFiles,pfb.EmbedLinks,pfb.SendMessages,pfb.ViewChannel,pfb.ReadMessageHistory]
                 })
 
                 //add main adminroles
@@ -172,7 +89,7 @@ module.exports = () => {
                         permissionsArray.push({
                             id:adminrole,
                             type:"role",
-                            allow:[pfb.AddReactions,pfb.AttachFiles,pfb.EmbedLinks,pfb.SendMessages,pfb.ViewChannel]
+                            allow:[pfb.AddReactions,pfb.AttachFiles,pfb.EmbedLinks,pfb.SendMessages,pfb.ViewChannel,pfb.ReadMessageHistory]
                         })
                     }catch{}
                 })
@@ -191,7 +108,7 @@ module.exports = () => {
                             permissionsArray.push({
                                 id:adminrole,
                                 type:"role",
-                                allow:[pfb.AddReactions,pfb.AttachFiles,pfb.EmbedLinks,pfb.SendMessages,pfb.ViewChannel]
+                                allow:[pfb.AddReactions,pfb.AttachFiles,pfb.EmbedLinks,pfb.SendMessages,pfb.ViewChannel,pfb.ReadMessageHistory]
                             })
                         }catch{}
                     }
@@ -208,7 +125,7 @@ module.exports = () => {
                                 permissionsArray.push({
                                     id:adminrole,
                                     type:"role",
-                                    allow:[pfb.AddReactions,pfb.ViewChannel],
+                                    allow:[pfb.AddReactions,pfb.ViewChannel,pfb.ReadMessageHistory],
                                     deny:[pfb.SendMessages,pfb.AttachFiles,pfb.EmbedLinks]
                                 })
                             }catch{}
@@ -284,6 +201,25 @@ module.exports = () => {
                     log("system","created new ticket",[{key:"ticket",value:ticketName},{key:"user",value:interaction.user.username}])
                     require("../api/modules/events").onTicketOpen(interaction.user,ticketChannel,interaction.guild,new Date(),{name:ticketName,status:"open",ticketOptions:currentTicketOptions})
 
+                    //STATS:
+                    bot.statsManager.updateGlobalStats("TICKETS_CREATED",(current) => {
+                        if (typeof current != "undefined") return current+1
+                        return 1
+                    })
+                    bot.statsManager.updateUserStats("TICKETS_CREATED",interaction.user.id,(current) => {
+                        if (typeof current != "undefined") return current+1
+                        return 1
+                    })
+                    bot.statsManager.updateTicketStats("CREATED_BY",ticketChannel.id,(current) => {
+                        return interaction.user.id
+                    })
+                    bot.statsManager.updateTicketStats("CREATED_AT",ticketChannel.id,(current) => {
+                        return new Date().getTime()
+                    })
+                    bot.statsManager.updateTicketStats("STATUS",ticketChannel.id,(current) => {
+                        return "open"
+                    })
+
                     const channelbutton = new discord.ActionRowBuilder()
                         .addComponents([
                             new discord.ButtonBuilder()
@@ -298,17 +234,16 @@ module.exports = () => {
                         if (currentTicketOptions.enableDmOnOpen) interaction.member.send({embeds:[bot.errorLog.custom(l.messages.newTicketDmTitle,currentTicketOptions.message,":ticket:",config.color)],components:[channelbutton]})
                     }
                     catch{log("system","failed to send DM")}
-                  
-                    if ((interaction.isButton() && config.system.answerInEphemeralOnOpen) || interaction.isChatInputCommand() || interaction.isModalSubmit()){
+
                         if (interaction.deferred){
                             interaction.editReply({embeds:[bot.errorLog.success(l.messages.createdTitle,l.messages.createdDescription)],components:[channelbutton]})
                         }else{
                             interaction.reply({embeds:[bot.errorLog.success(l.messages.createdTitle,l.messages.createdDescription)],components:[channelbutton]})
                         }
                     }
-                    
                 })
             }else{
+                interaction.editReply({embeds:[bot.errorLog.warning(l.errors.maxAmountTitle,l.errors.maxAmountDescription)]})
                 try {
                     if (config.system.dmMessages){
                         interaction.member.send({embeds:[bot.errorLog.warning(l.errors.maxAmountTitle,l.errors.maxAmountDescription)]})

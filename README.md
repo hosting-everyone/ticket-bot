@@ -1,78 +1,71 @@
-# MODALS VERSION (by [@carlosmezquita](https://github.com/carlosmezquita))
-This is a modified version of open ticket with the addition of discord modals on ticket creation. All issues relating to modals should be reported to [@carlosmezquita](https://github.com/carlosmezquita). Feel free to report these issues in the issues tab from this repository.
-
-Thanks to @carlosmezquita for creating this modified version!
-
-<hr>
-<img src="https://www.dj-dj.be/wp-content/uploads/2023/02/open-ticket-cropped.png" alt="Open Ticket" width="600px">
-
-[![discord](https://img.shields.io/badge/discord-join%20our%20server-5865F2.svg?style=flat-square&logo=discord)](https://discord.com/invite/26vT9wt3n3)  [![version](https://img.shields.io/badge/version-3.4.1--modals-brightgreen.svg?style=flat-square)](https://github.com/DJj123dj/open-ticket/releases/tag/v3.4.1)  [![discord.js](https://img.shields.io/badge/discord.js-v14-CB3837.svg?style=flat-square&logo=npm)]()  [![license](https://img.shields.io/badge/license-GPL%203.0-important.svg?style=flat-square)](https://github.com/DJj123dj/open-ticket/blob/main/LICENSE) [![stars](https://img.shields.io/github/stars/djj123dj/open-ticket?color=yellow&label=stars&logo=github&style=flat-square)](https://docs.openticket.dj-dj.be)
-
-
 ### Open Ticket
-Open Ticket is the most customisable discord ticket bot that you will ever find! There are more than 150 options to customise in the config! This includes html transcripts, unlimited amount of tickets, custom embeds & more! Did you know that even the html transcripts are highly customisable? Don't wait and check it out! If you're having trouble setting the bot up, feel free to join our support server and we will help you further!
+Open Ticket is the most customisable discord ticket bot that you will ever find! There are more than 150 options to customise in the config! This includes html transcripts, unlimited tickets, custom embeds & more! Did you know that even the html transcripts are highly customisable? Don't wait and check it out! If you're having trouble setting the bot up, feel free to join our support server and we will help you further!
 
 Take a look at all the features and discover the possibilities!
-### [Documentation](https://docs.openticket.dj-dj.be/quick-start)
+### [Visit the Documentation!](https://otdocs.dj-dj.be/)
 
-## Features
-- **🎉 NEW! html transcripts V2!**
+## 📌 Features
+- **🎉 advanced html transcripts!**
 - 🔒 close, ❌ delete & ✅ re-open tickets
-- 🇬🇧 translation in 19 different languages
+- 🇬🇧 translation in 24 different languages
 - 📄 very advanced customisation
 - 🆗 buttons or 🔽 dropdowns!
-- 🆒 plugins
-- ∞ unlimited tickets & unlimited messages
+- 🆒 custom plugins
+- ∞ unlimited tickets & embeds
 - ➕➖ add/remove users from a ticket
+- 📊 ticket, user & global staticstics
 - /slash & text commands
+- 📥 reaction roles & url buttons
+- 🖥️ discord.js v14 & axios
+- 🎛️ latest discord integration
 
-<details>
-  <summary><b>Click here for even more features!</b></summary>
-  
-  
-  - very customisable
-  - close tickets with reason
-  - also includes reaction roles!
-  - discord interaction buttons
-  - discord.js 14
-</details>
+## 📸 Preview
+<img src="https://apis.dj-dj.be/cdn/openticket/message_buttons.png" alt="Message with buttons" width="350px">
+<img src="https://apis.dj-dj.be/cdn/openticket/message_dropdown.png" alt="Message with dropdown" width="350px">
+<br>
+<img src="https://apis.dj-dj.be/cdn/openticket/firstmsg.png" alt="Ticket start message" width="350px">
+<img src="https://apis.dj-dj.be/cdn/openticket/command_close.png" alt="Ticket start message" width="350px">
 
-## preview
-Images coming soon<br>
-You can already see some images at our [documentation!](https://docs.openticket.dj-dj.be)
+## 🩷 Sponsors
+A big thanks to all our sponsors!
+- <img src="https://github.com/SpyEye2.png" alt="Profile Picture" width="25px"></img> **[SpyeEye](https://github.com/SpyEye2)**
+- <img src="https://github.com/DOSEV5.png" alt="Profile Picture" width="25px"></img> **[DOSEV5](https://github.com/DOSEV5)**
+- <img src="https://github.com/mods-hd.png" alt="Profile Picture" width="25px"></img> **[Mods HD](https://github.com/mods-hd)**
 
+## 🛠️ Contributors
+### Official Team
+|Role             |User (discord name)|
+|-----------------|-------------------|
+|Lead Developer   |djj123dj           |
+|Support Team     |sankedev           |
+|Support Team     |vuur_draak         |
 
-## credits
-DJdj Development Team
-|Main Developer|Developer   |Support Team|Designer|
-|--------------|------------|-----------|---------|
-|djj123dj      |sankedev    |DJ-Lite    |vuur_draak|
+### Translators
+|Language           |Maintainer (discord name) |Status         |
+|-------------------|--------------------------|---------------|
+|English            |djj123dj                  |🟢 Up To Date  |
+|Dutch              |djj123dj                  |🟢 Up To Date  |
+|French             |sankedev & tostam         |🟢 Up To Date  |
+|Romanian           |sankedev                  |🟢 Up To Date  |
+|Spanish            |redactado & josuens       |🟢 Up To Date  |
+|German             |david.3                   |🟢 Up To Date  |
+|Italian            |maurizio26                |🟢 Up To Date  |
+|Czech              |spyeye_                   |🟢 Up To Date  |
+|Arabic             |deqressing                |🟢 Up To Date  |
+|Danish             |.the_gamer                |🟢 Up To Date  |
+|Portuguese         |quiradon                  |🔴 Outdated    |
+|Russian            |apexo & ander             |🟢 Up To Date  |
+|Ukrainian          |ander                     |🟢 Up To Date  |
+|Turkish            |Hydra#0009                |🔴 Outdated    |
+|Polish             |mkevas                    |🟢 Up To Date  |
+|Slovenian          |n1kkec                    |🔴 Outdated    |
+|Thai               |modshd                    |🟢 Up To Date  |
+|Norwegian          |noonenook                 |🟢 Up To Date  |
+|Greek              |stefanos__.               |🔴 Outdated    |
+|Indonesian         |erxg                      |🟢 Up To Date  |
+|Kurdish            |raze.hama                 |🟢 Up To Date  |
+|Hungarian          |Snowy                     |🔴 Outdated    |
+|Persian            |sasanwm                   |🟢 Up To Date  |
+|Latvian            |ronalds1398               |🟢 Up To Date  |
 
-Translators
-|Language      |Translator               |
-|--------------|-------------------------|
-|Dutch         |djj123dj                 |
-|Romanian      |sankedev                 |
-|French        |sankedev                 |
-|Spanish       |redactado & josuens      |
-|German        |david.3                  |
-|Italian       |maurizio26               |
-|Czech         |t0miiis#3022             |
-|Arabic        |Sarcastic#9318           |
-|Danish        |.the_gamer               |
-|Portuguese    |quiradon                 |
-|Russian       |apexo                    |
-|Turkish       |Hydra#0009               |
-|Polish        |mkevas                   |
-|Slovenian     |n1kkec                   |
-|Thai          |modshd                   |
-|Norwegian     |noonenook                |
-|Greek         |stefanos#5739            |
-|Ukrainian     |anderskiy                |
-
-## links
-current version: _v3.4.1 modals version_
-</br>changelog: [click here](https://docs.openticket.dj-dj.be/other/changelog)
-</br>documentation: [click here](https://docs.openticket.dj-dj.be/quick-start)
-
-© 2023 - DJdj Development | [website](https://www.dj-dj.be) | [discord](https://discord.dj-dj.be) | [terms of service](https://www.dj-dj.be/terms)
+© 2024 - DJdj Development | [website](https://www.dj-dj.be) | [discord](https://discord.dj-dj.be) | [terms of service](https://www.dj-dj.be/terms)
