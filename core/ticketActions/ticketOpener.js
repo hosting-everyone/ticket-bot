@@ -42,30 +42,18 @@ module.exports = () => {
             }
         }
 
-        
-        if (configParser.getTicketValuesArray("id").includes(customId)){
+
+        if (configParser.getTicketValuesArray("id").includes(customId)) {
 
             //ticketoptions from config
             const currentTicketOptions = configParser.getTicketById(customId)
-            if (currentTicketOptions == false) return interaction.reply({embeds:[bot.errorLog.serverError(l.errors.anotherOption)]})
+            if (currentTicketOptions == false) return interaction.reply({embeds: [bot.errorLog.serverError(l.errors.anotherOption)]})
 
-            if (interaction.isButton() || interaction.isStringSelectMenu() || interaction.isChatInputCommand()){
-                try{
-                    await interaction.deferReply({ephemeral:config.system.answerInEphemeralOnOpen})
-                }catch{}
-            }
-
-            const currentUserTicketAmount = storage.get("amountOfUserTickets",interaction.member.id)
-            if (config.system.maxAmountOfTickets == 0 || !currentUserTicketAmount || currentUserTicketAmount == "false" || Number(currentUserTicketAmount) < config.system.maxAmountOfTickets){
-
-                //update storage
-                storage.set("amountOfUserTickets",interaction.member.id,Number(currentUserTicketAmount)+1)
                 var ticketNumber = interaction.member.user.username
-
                 //set ticketName
-                var ticketName = currentTicketOptions.channelprefix+ticketNumber
+                var ticketName = currentTicketOptions.channelprefix + ticketNumber
                 var logsname = currentTicketOptions.name
-                
+
                 //category
                 if (currentTicketOptions.category.length < 16 || currentTicketOptions.category.length > 20){
                     var newTicketCategory = null
@@ -189,6 +177,12 @@ module.exports = () => {
 
                     if (currentTicketOptions.thumbnail.enable) ticketEmbed.setThumbnail(currentTicketOptions.thumbnail.url)
                     if (currentTicketOptions.image.enable) ticketEmbed.setImage(currentTicketOptions.image.url)
+
+                    if (currentTicketOptions.modal.enable && interaction.isModalSubmit()) {
+                        modalReply.forEach(item => {
+                            ticketEmbed.addFields({name: item[0], value: item[1]})
+                        })
+                    }
                 
                     const herePing = currentTicketOptions.ping['@here'] ? " @here" : ""
                     const everyonePing = currentTicketOptions.ping['@everyone'] ? " @everyone" : ""
@@ -241,7 +235,6 @@ module.exports = () => {
                     }
                     catch{log("system","failed to send DM")}
 
-                    if (((interaction.isButton() || interaction.isStringSelectMenu()) && config.system.answerInEphemeralOnOpen) || interaction.isChatInputCommand()){
                         if (interaction.deferred){
                             interaction.editReply({embeds:[bot.errorLog.success(l.messages.createdTitle,l.messages.createdDescription)],components:[channelbutton]})
                         }else{

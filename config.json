@@ -49,6 +49,11 @@
             "enableDmOnOpen":true,
             "ticketmessage":"The staff will help you soon!\n\n*Click on the button below to close the ticket!*",
 
+            "modal":{
+                "enable": true,
+                "modalId":"name_description"
+            },
+
             "thumbnail":{
                 "enable":false,
                 "url":"https://www.example.com/catmemes/cat.png"
@@ -101,7 +106,32 @@
             "enableDmOnOpen":true
         }
     ],
-
+    "modals": [
+        {
+            "id": "name_description",
+            "title": "Modal Title",
+            "questions": [
+                {
+                    "label": "Name",
+                    "style": "short",
+                    "maxLength": 50,
+                    "minLength": 3,
+                    "placeholder": "Enter your name",
+                    "value": "",
+                    "required": true
+                },
+                {
+                    "label": "Description",
+                    "style": "long",
+                    "maxLength": 1000,
+                    "minLength": 0,
+                    "placeholder": "Explain what happened",
+                    "value": "",
+                    "required": false
+                }
+            ]
+        }
+    ],
     "messages":[
         {
             "id":"example-embed",
